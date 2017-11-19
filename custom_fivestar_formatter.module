@@ -9,24 +9,20 @@
 */
 function custom_fivestar_formatter_field_formatter_info() {
   $info = array(
-    'fivestar_simple_formatter' => array(
-      'label' => t('Rate digit. Grade'),
+    'fivestar_number_formatter' => array(
+      'label' => t('Simple number'),
       'field types' => array('fivestar'),
-      'description' => t('Displays rate as a simple digit. Grade'),
+      'description' => t('Displays rate as a simple number'),
     ),
-    'fivestar_simple_formatter_2' => array(
-      'label' => t('Rate digit'),
+    'fivestar_grade_formatter' => array(
+      'label' => t('Grade'),
       'field types' => array('fivestar'),
-      'description' => t('Displays rate as a simple digit'),
+      'description' => t('Displays rate as a grade. Labeled number'),
     ),
     'fivestar_range_formatter' => array(
-      'label' => t('range'),
+      'label' => t('Range'),
       'field types' => array('fivestar'),
       'description' => t('Displays rate as a range'),
-    ),
-    'title_range' => array(
-      'label' => t('Title range'),
-      'field types' => array('text'),
     ),
   );
   return $info;
@@ -38,40 +34,33 @@ function custom_fivestar_formatter_field_formatter_info() {
 function custom_fivestar_formatter_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
   $element = array();
   switch ($display['type']) {
-    case 'fivestar_simple_formatter':
+    case 'fivestar_number_formatter':
       foreach ($items as $delta => $item) {
         $element[$delta] = array(
-          '#theme' => 'custom_fivestar_simple_formatter',
+          '#theme' => 'custom_fivestar_number_formatter',
           '#instance_settings' => $instance['settings'],
           '#item' => $items[0],
         );
-     }
+      }
       break;
-      case 'fivestar_simple_formatter_2':
+    case 'fivestar_grade_formatter':
       foreach ($items as $delta => $item) {
         $element[$delta] = array(
-          '#theme' => 'custom_fivestar_simple_formatter_2',
-          '#instance_settings' => $instance['settings'],
-          '#item' => $items[0],
+          '#markup' => t('Grade: @grade', array('@grade' => theme('custom_fivestar_number_formatter', array(
+            'instance_settings' => $instance['settings'],
+            'item' => $items[0],
+          )))),
         );
-     }
+      }
       break;
-      case 'fivestar_range_formatter':
+    case 'fivestar_range_formatter':
       foreach ($items as $delta => $item) {
         $element[$delta] = array(
           '#theme' => 'custom_fivestar_range_formatter',
           '#instance_settings' => $instance['settings'],
           '#item' => $items[0],
         );
-     }
-      break;
-      case 'title_range':
-      foreach ($items as $delta => $item) {
-        $element[$delta] = array(
-          '#theme' => 'custom_title_range_formatter',
-          '#item' => $items[0],
-        );
-     }
+      }
       break;
   }
   return $element;
@@ -82,212 +71,42 @@ function custom_fivestar_formatter_field_formatter_view($entity_type, $entity, $
 */
 function custom_fivestar_formatter_theme() {
   return array(
-    'custom_fivestar_simple_formatter' => array(
+    'custom_fivestar_number_formatter' => array(
       'variables' => array(
         'instance_settings' => NULL,
         'item' => NULL,
       ),
-    ),
-    'custom_fivestar_simple_formatter_2' => array(
-      'variables' => array(
-        'instance_settings' => NULL,
-        'item' => NULL,
-      ),
+      'file' => 'custom_fivestar_formatter.theme.inc',
     ),
     'custom_fivestar_range_formatter' => array(
       'variables' => array(
         'instance_settings' => NULL,
         'item' => NULL,
       ),
-    ),
-    'custom_title_range_formatter' => array(
-      'variables' => array(
-        'item' => NULL,
-      ),
+      'file' => 'custom_fivestar_formatter.theme.inc',
     ),
   );
 }
 
 /**
- * Returns HTML for a custom_fivestar_simple_formatter.
+ * Helper function to get rating.
  *
  * @param array $variables
- * An associative array containing:
+ * An associative array (taken from a theme function) containing:
  * - instance_settings: Fivestar instance settings.
- * - item: Item to theme.
+ * - item: Item.
  *
- * @return string
- *   Rendered grade.
- *
- * @ingroup themeable
+ * @return float
+ *   Rating.
  */
-function theme_custom_fivestar_simple_formatter($variables) {
+function custom_fivestar_number_get_rating($variables) {
   $item = $variables['item'];
   $instance_settings = $variables['instance_settings'];
-
   if (empty($item['average'])) {
     $item['average'] = 0;
   }
   // Get number of stars.
   $stars = (empty($instance_settings['stars'])) ? 5 : $instance_settings['stars'];
   $average = $item['average'];
-  // Rating is X out of Y stars.
-  $rating = round(($average/100) * $stars, 1);
-  $output = t('Grade: @grade', array('@grade' => $rating));
-
-  return $output;
-}
-
-/**
- * Returns HTML for a custom_fivestar_simple_formatter_2.
- *
- * @param array $variables
- * An associative array containing:
- * - instance_settings: Fivestar instance settings.
- * - item: Item to theme.
- *
- * @return string
- *   Simple rating number.
- *
- * @ingroup themeable
- */
-function theme_custom_fivestar_simple_formatter_2($variables) {
-  $item = $variables['item'];
-  $instance_settings = $variables['instance_settings'];
-
-  if (empty($item['average'])) {
-    $item['average'] = 0;
-  }
-  // Get number of stars.
-  $stars = (empty($instance_settings['stars'])) ? 5 : $instance_settings['stars'];
-  $average = $item['average'];
-  // Rating is X out of Y stars.
-  $rating = round(($average/100) * $stars, 1);
-
-  return $rating;
-}
-
-/**
- * Returns HTML for a custom_fivestar_range_formatter.
- *
- * @param array $variables
- * An associative array containing:
- * - instance_settings: Fivestar instance settings.
- * - item: Item to theme.
- *
- * @return string
- *   range rating.
- *
- * @ingroup themeable
- */
-function theme_custom_fivestar_range_formatter($variables) {
-  $item = $variables['item'];
-  $instance_settings = $variables['instance_settings'];
-
-  if (empty($item['average'])) {
-    $item['average'] = 0;
-  }
-  // Get number of stars.
-  $stars = (empty($instance_settings['stars'])) ? 5 : $instance_settings['stars'];
-  $average = $item['average'];
-
-  // Rating is X out of Y stars.
-  $rating = round(($average/100) * $stars, 1);
-
-  $max = ceil($rating * 2) / 2;
-  $min = floor($rating * 2) / 2;
-
-  if($rating == $min && $min == $max){
-    if($rating != 5){
-      $min = $rating;
-      $max = $rating + 0.5;
-    } else{
-      $min = $rating - 0.5;
-      $max = $rating;
-    }
-  }
-
-  return $min . ' - ' . $max;
-}
-
-/**
- * Returns HTML for a custom_title_range_formatter.
- *
- * @param array $variables
- * An associative array containing:
- * - item: Item to theme.
- *
- * @return string
- *   Cyrillic letters range.
- *
- * @ingroup themeable
- */
-function theme_custom_title_range_formatter($variables) {
-  $item = $variables['item'];
-
-  $codes = array(
-    0 => array(
-      'min' => custom_fivestar_formatter_utf8_ord('А'),
-      'max' => custom_fivestar_formatter_utf8_ord('Г'),
-      'output' => 'А - Г',
-    ),
-    1 => array(
-      'min' => custom_fivestar_formatter_utf8_ord('Д'),
-      'max' => custom_fivestar_formatter_utf8_ord('З'),
-      'output' => 'Д - З',
-    ),
-    2 => array(
-      'min' => custom_fivestar_formatter_utf8_ord('И'),
-      'max' => custom_fivestar_formatter_utf8_ord('М'),
-      'output' => 'И - М',
-    ),
-    3 => array(
-      'min' => custom_fivestar_formatter_utf8_ord('Н'),
-      'max' => custom_fivestar_formatter_utf8_ord('Р'),
-      'output' => 'Н - Р',
-    ),
-    4 => array(
-      'min' => custom_fivestar_formatter_utf8_ord('С'),
-      'max' => custom_fivestar_formatter_utf8_ord('Ф'),
-      'output' => 'С - Ф',
-    ),
-    5 => array(
-      'min' => custom_fivestar_formatter_utf8_ord('Х'),
-      'max' => custom_fivestar_formatter_utf8_ord('Ш'),
-      'output' => 'Х - Ш',
-    ),
-    6 => array(
-      'min' => custom_fivestar_formatter_utf8_ord('Щ'),
-      'max' => custom_fivestar_formatter_utf8_ord('Я'),
-      'output' => 'Щ - Я',
-    ),
-  );
-
-  $letter = mb_substr($item['value'], 0, 1);
-  $code = custom_fivestar_formatter_utf8_ord($letter);
-
-  $output = '';
-  foreach($codes as $code_item){
-    if(in_array($code, range($code_item['min'], $code_item['max']))){
-      $output = $code_item['output'];
-      break;
-    }
-  }
-
-  return $output;
-}
-
-/**
- * Helper function to determine right range of cyrillic symbols.
- *
- * @param string $letter
- *   Symbols to decode.
- *
- * @return int
- *   Code.
- */
-function custom_fivestar_formatter_utf8_ord($letter){
-  $byte_1 = $letter[0];
-  $byte_2 = $letter[1];
-  return (ord($byte_1) - 192) * 64 + (ord($byte_2) - 128);
+  return round(($average/100) * $stars, 1);
 }
