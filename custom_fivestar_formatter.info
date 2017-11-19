@@ -1,0 +1,5 @@
+name = Custom Fivestar Formatter
+package = Custom modules by Klimp
+core = 7.x
+description = Custom tweaks
+dependencies[] = fivestar
